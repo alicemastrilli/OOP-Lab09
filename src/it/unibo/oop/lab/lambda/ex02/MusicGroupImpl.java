@@ -1,12 +1,22 @@
 package it.unibo.oop.lab.lambda.ex02;
 
+import static org.junit.jupiter.api.DynamicTest.stream;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+
+
 
 /**
  *
@@ -31,42 +41,46 @@ public final class MusicGroupImpl implements MusicGroup {
 
     @Override
     public Stream<String> orderedSongNames() {
-        return null;
+        return songs.stream().map(s -> s.getSongName()).sorted();
     }
 
     @Override
     public Stream<String> albumNames() {
-        return null;
+        return albums.keySet().stream();
     }
 
     @Override
     public Stream<String> albumInYear(final int year) {
-        return null;
+        Set<String> anno = new HashSet<>();
+        return albums.keySet().stream().filter(s -> albums.get(s) == year);
     }
 
     @Override
     public int countSongs(final String albumName) {
-        return -1;
+        return (int) songs.stream().filter(s -> s.getAlbumName().isPresent()).filter(s->s.getAlbumName().get().equals(albumName)).count();
     }
 
     @Override
     public int countSongsInNoAlbum() {
-        return -1;
+        return (int) songs.stream().filter(s -> s.getAlbumName().isEmpty()).count();
     }
 
     @Override
     public OptionalDouble averageDurationOfSongs(final String albumName) {
-        return null;
+        return songs.stream().filter(s -> s.getAlbumName().isPresent()).filter(s ->s.getAlbumName().get().equals(albumName)).mapToDouble(s-> s.getDuration()).average();
     }
 
     @Override
     public Optional<String> longestSong() {
-        return null;
+        return songs.stream().reduce((a,b) -> a.getDuration() > b.getDuration() ? a : b).map(Song :: getSongName);
     }
 
     @Override
     public Optional<String> longestAlbum() {
-        return null;
+        final Map<String, Double> mappa = new HashMap<>();
+        songs.stream().filter(s -> s.getAlbumName().isPresent()).
+              forEach(s -> mappa.merge(s.getAlbumName().get(), s.getDuration(), (a,b) -> a +b)); 
+        return mappa.keySet().stream().reduce((a,b) -> mappa.get(a) > mappa.get(b) ? a : b);
     }
 
     private static final class Song {
